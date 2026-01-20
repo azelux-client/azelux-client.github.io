@@ -1,0 +1,55 @@
+{
+  "grass": {
+    "carried_textures": {
+      "down": "grass_carried_top",
+      "side": "grass_carried_top",
+      "up": "grass_carried_top"
+    },
+    "textures": {
+      "down": "grass_side",
+      "side": "grass_side",
+      "up": "grass_top"
+    }
+  },
+  "grass_path": {
+    "textures": {
+      "down": "grass_path_top",
+      "side": "grass_path_top",
+      "up": "grass_path_top"
+    }
+  },
+  "mycelium": {
+    "textures": {
+      "down": "mycelium_top",
+      "side": "mycelium_top",
+      "up": "mycelium_top"
+    }
+  },
+  "warped_nylium": {
+    "textures": {
+      "down": "warped_nylium_top",
+      "east": "warped_nylium_top",
+      "north": "warped_nylium_top",
+      "south": "warped_nylium_top",
+      "up": "warped_nylium_top",
+      "west": "warped_nylium_top"
+    }
+  },
+  "crimson_nylium": {
+    "textures": {
+      "down": "crimson_nylium_top",
+      "east": "crimson_nylium_top",
+      "north": "crimson_nylium_top",
+      "south": "crimson_nylium_top",
+      "up": "crimson_nylium_top",
+      "west": "crimson_nylium_top"
+    }
+  },
+  "podzol": {
+    "textures": {
+      "down": "dirt_podzol_top",
+      "side": "dirt_podzol_top",
+      "up": "dirt_podzol_top"
+    }
+  }
+}

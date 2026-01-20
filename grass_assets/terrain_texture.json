@@ -1,0 +1,99 @@
+{
+  "resource_pack_name": "Fast Better Grass",
+  "texture_data": {
+    "grass_carried": {
+      "textures": {
+        "overlay_color": "#70a558",
+        "path": "textures/blocks/grass_top"
+      }
+    },
+    "grass_carried_top": {
+      "textures": "textures/blocks/grass_carried"
+    },
+    "grass_path_side": {
+      "textures": ["textures/blocks/grass_path_top"]
+    },
+    "grass_path_top": {
+      "textures": ["textures/blocks/grass_path_top"]
+    },
+    "grass_side": {
+      "textures": [
+        { "overlay_color": "#70a558", "path": "textures/blocks/grass_top" },
+        { "overlay_color": "#80847d", "path": "textures/blocks/grass_top" },
+        { "overlay_color": "#b6b65a", "path": "textures/blocks/grass_top" },
+        { "overlay_color": "#5aa18b", "path": "textures/blocks/grass_top" },
+        { "overlay_color": "#56a294", "path": "textures/blocks/grass_top" },
+        { "overlay_color": "#7ea766", "path": "textures/blocks/grass_top" },
+        { "overlay_color": "#7b9f79", "path": "textures/blocks/grass_top" },
+        { "overlay_color": "#5f9968", "path": "textures/blocks/grass_top" },
+        { "overlay_color": "#7fa285", "path": "textures/blocks/grass_top" },
+        { "overlay_color": "#7b9e92", "path": "textures/blocks/grass_top" },
+        { "overlay_color": "#769d91", "path": "textures/blocks/grass_top" },
+        { "overlay_color": "#8aaa59", "path": "textures/blocks/grass_top" },
+        { "overlay_color": "#857f54", "path": "textures/blocks/grass_top" },
+        { "overlay_color": "#827f6e", "path": "textures/blocks/grass_top" },
+        { "overlay_color": "#646e41", "path": "textures/blocks/grass_top" },
+        { "overlay_color": "#4f6c36", "path": "textures/blocks/grass_top" },
+        "textures/blocks/snow"
+      ]
+    },
+    "grass_top": {
+      "textures": ["textures/blocks/grass_top"]
+    },
+    "grass_bottom": {
+      "textures": [
+        { "overlay_color": "#70a558", "path": "textures/blocks/grass_top" },
+        { "overlay_color": "#80847d", "path": "textures/blocks/grass_top" },
+        { "overlay_color": "#b6b65a", "path": "textures/blocks/grass_top" },
+        { "overlay_color": "#5aa18b", "path": "textures/blocks/grass_top" },
+        { "overlay_color": "#56a294", "path": "textures/blocks/grass_top" },
+        { "overlay_color": "#7ea766", "path": "textures/blocks/grass_top" },
+        { "overlay_color": "#7b9f79", "path": "textures/blocks/grass_top" },
+        { "overlay_color": "#5f9968", "path": "textures/blocks/grass_top" },
+        { "overlay_color": "#7fa285", "path": "textures/blocks/grass_top" },
+        { "overlay_color": "#7b9e92", "path": "textures/blocks/grass_top" },
+        { "overlay_color": "#769d91", "path": "textures/blocks/grass_top" },
+        { "overlay_color": "#8aaa59", "path": "textures/blocks/grass_top" },
+        { "overlay_color": "#857f54", "path": "textures/blocks/grass_top" },
+        { "overlay_color": "#827f6e", "path": "textures/blocks/grass_top" },
+        { "overlay_color": "#646e41", "path": "textures/blocks/grass_top" },
+        { "overlay_color": "#4f6c36", "path": "textures/blocks/grass_top" },
+        "textures/blocks/snow"
+      ]
+    },
+    "snow": {
+      "textures": "textures/blocks/snow"
+    },
+    "mycelium_bottom": {
+      "textures": ["textures/blocks/mycelium_top"]
+    },
+    "mycelium_side": {
+      "textures": ["textures/blocks/mycelium_top", "textures/blocks/snow"]
+    },
+    "mycelium_top": {
+      "textures": ["textures/blocks/mycelium_top"]
+    },
+    "dirt_podzol_bottom": {
+      "textures": "textures/blocks/dirt_podzol_top"
+    },
+    "dirt_podzol_side": {
+      "textures": "textures/blocks/dirt_podzol_top"
+    },
+    "dirt_podzol_top": {
+      "textures": "textures/blocks/dirt_podzol_top"
+    },
+    "warped_nylium_side": {
+      "textures": "textures/blocks/warped_nylium_top"
+    },
+    "warped_nylium_top": {
+      "textures": "textures/blocks/warped_nylium_top"
+    },
+    "crimson_nylium_side": {
+      "textures": "textures/blocks/crimson_nylium_top"
+    },
+    "crimson_nylium_top": {
+      "textures": "textures/blocks/crimson_nylium_top"
+    }
+  },
+  "texture_name": "atlas.terrain"
+}
