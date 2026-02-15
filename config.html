@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Azelux Client</title>
+	<link rel="icon" href="/favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="topbar">
+    <div class="topbar-left">
+        <img src="logo.png" class="logo-small-img" alt="Azelux Logo">
+        <span class="brand-text">AZELUX CLIENT</span>
+    </div>
+
+    <nav class="topbar-nav">
+        <a href="index.html">HOME</a>
+        <a href="staff.html">STAFF</a>
+        <a href="config.html">CONFIG SAVING</a>
+    </nav>
+
+    <div class="topbar-right">
+        <div class="online-status">
+            <span class="dot"></span>
+            <span id="online-count">– online</span>
+        </div>
+
+        <a href="https://dsc.gg/azelux" class="download-header">DOWNLOAD</a>
+    </div>
+</header>
+
+<div class="burger-menu" id="burgerMenu">
+    <a href="index.html">HOME</a>
+    <a href="staff.html">STAFF</a>
+    <a href="config.html">CONFIG SAVING</a>
+</div>
+
+<section class="hero">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <!-- Updated subtitle -->
+        <p class="subtitle">
+            Upload screenshot of your config code below:
+        </p>
+
+        <!-- Upload button -->
+        <label class="btn download" style="cursor:pointer;">
+            UPLOAD IMAGE
+            <input type="file" id="imageInput" accept="image/*" style="display:none" />
+        </label>
+
+        <!-- Download button -->
+        <button id="downloadZip" class="btn config" style="margin-top:16px; display:none;">
+            DOWNLOAD CONFIG
+        </button>
+
+        <!-- YouTube embed -->
+        <div class="video-container" style="margin-top:32px; max-width:800px; margin-left:auto; margin-right:auto;">
+            <iframe src="https://www.youtube.com/embed/l_-66aA06wg"
+                    title="YouTube video player" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen>
+            </iframe>
+        </div>
+    </div>
+</section>
+
+<style>
+    /* Make subtitle bigger, bolder, and a little lifted */
+    .hero .subtitle {
+        font-size: 1.8rem;  /* bigger text */
+        font-weight: 700;    /* bold */
+        margin-bottom: 24px; /* more space below */
+        color: #fff;         /* adjust based on overlay/background */
+        text-shadow: 1px 1px 6px rgba(0,0,0,0.6); /* subtle glow effect */
+    }
+
+    /* Style the buttons more visually */
+    .hero .btn {
+        padding: 12px 24px;
+        font-size: 1rem;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .hero .btn.download:hover {
+        background-color: #4f9fff;
+        transform: translateY(-2px);
+    }
+
+    .hero .btn.config:hover {
+        background-color: #ff9f4f;
+        transform: translateY(-2px);
+    }
+
+    .video-container {
+        position: relative;
+        width: 100%;
+        padding-bottom: 56.25%; /* 16:9 ratio */
+        height: 0;
+    }
+
+    .video-container iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: 12px;
+    }
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB-A_ztjoiaNmdU2OcSLxz3xMN1RYwjDcA",
+      authDomain: "azeluxclient.firebaseapp.com",
+      projectId: "azeluxclient",
+      storageBucket: "azeluxclient.firebasestorage.app",
+      messagingSenderId: "688520304914",
+      appId: "1:688520304914:web:91b069006b3b2dc4aebbcb",
+      measurementId: "G-GBGV2RKLFD"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Make available globally for script.js
+    window.db = db;
+    window.doc = doc;
+    window.setDoc = setDoc;
+    window.getDoc = getDoc;
+</script>
+
+<script src="script.js"></script>
+<script>
+    const imageInput = document.getElementById("imageInput");
+    const downloadBtn = document.getElementById("downloadZip");
+    let decoded = null;
+
+    // Run OCR & decode immediately on file upload
+    imageInput.addEventListener("change", async () => {
+        if (!imageInput.files[0]) return;
+
+        downloadBtn.style.display = "none";
+
+        try {
+            const result = await Tesseract.recognize(imageInput.files[0], "eng", {
+                tessedit_char_whitelist: "acxACX@0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+            });
+
+            const rawText = result.data.text;
+            const normalized = normalizeOCR(rawText);
+            const lines = extractLines(normalized);
+            const rawLines = extractLines(rawText);
+            lines.acx3 = normalizeACX3(rawLines.acx3);
+
+            decoded = {
+                acx1: decodeACX1(lines.acx1),
+                acx2: decodeACX2(lines.acx2),
+                acx3: decodeACX3(lines.acx3),
+            };
+
+            decoded.acx3.username = decoded.acx3.username.trim();
+
+            // Only show the download button — DO NOT CALL generateConfigZip here
+            downloadBtn.style.display = "inline-block";
+
+        } catch (err) {
+            alert("Failed to process the screenshot. Make sure it's a valid Azelux config.");
+            decoded = null;
+        }
+    });
+
+
+        // =========================
+        // OCR NORMALIZATION
+        // =========================
+        function normalizeOCR(text) {
+            return text.replace(/\s+/g, "")
+                .replace(/O/g, "0")
+                .replace(/[Il]/g, "1")
+                .toLowerCase();
+        }
+
+        // =========================
+        // LINE EXTRACTION
+        // =========================
+        function extractLines(text) {
+            const i1 = text.indexOf("acx1@");
+            const i2 = text.indexOf("acx2@");
+            const i3 = text.indexOf("acx3@");
+
+            if (i1 === -1 || i2 === -1 || i3 === -1) throw new Error("Missing acx line prefix");
+            if (!(i1 < i2 && i2 < i3)) throw new Error("Invalid acx line order");
+
+            return {
+                acx1: text.slice(i1, i2),
+                acx2: text.slice(i2, i3),
+                acx3: text.slice(i3),
+            };
+        }
+
+        // =========================
+        // HELPERS
+        // =========================
+        function take(str, n) { return [parseInt(str.slice(0, n), 10), str.slice(n)]; }
+        function takeBool(str) { return [str[0] === "1", str.slice(1)]; }
+
+        // =========================
+        // ACX1 DECODER
+        // =========================
+        function decodeACX1(line) {
+            let d = line.replace("acx1@", "");
+            const o = {};
+            [o.armorHudEnabled, d] = takeBool(d);
+            [o.bootsX, d] = take(d, 2);
+            [o.bootsY, d] = take(d, 2);
+            [o.leggingsX, d] = take(d, 2);
+            [o.leggingsY, d] = take(d, 2);
+            [o.chestplateX, d] = take(d, 2);
+            [o.chestplateY, d] = take(d, 2);
+            [o.helmetX, d] = take(d, 2);
+            [o.helmetY, d] = take(d, 2);
+            [o.directionHudEnabled, d] = takeBool(d);
+            [o.directionLegacyEnabled, d] = takeBool(d);
+            [o.directionX, d] = take(d, 2);
+            [o.directionY, d] = take(d, 2);
+            [o.directionLegacyX, d] = take(d, 2);
+            [o.directionLegacyY, d] = take(d, 2);
+            [o.glintEnabled, d] = takeBool(d);
+            [o.glintSelected, d] = take(d, 1);
+            [o.f8Screen, d] = takeBool(d);
+            [o.serverAddressEnabled, d] = takeBool(d);
+            [o.serverAddressBackground, d] = takeBool(d);
+            [o.serverAddressIcon, d] = takeBool(d);
+            [o.serverAddressX, d] = take(d, 2);
+            [o.serverAddressY, d] = take(d, 2);
+            [o.shinyPotsEnabled, d] = takeBool(d);
+            [o.shinyPotsSelected, d] = take(d, 1);
+            [o.movingStatusEnabled, d] = takeBool(d);
+            [o.movingStatusBackground, d] = takeBool(d);
+            [o.movingStatusX, d] = take(d, 2);
+            [o.movingStatusY, d] = take(d, 2);
+            [o.customCrosshairEnabled, d] = takeBool(d);
+            [o.customCrosshairSelected, d] = take(d, 1);
+            [o.crosshairDefaultColor, d] = takeBool(d);
+            [o.crosshairColor, d] = take(d, 1);
+            return o;
+        }
+
+        // =========================
+        // ACX2 DECODER
+        // =========================
+        function decodeACX2(line) {
+            let d = line.replace("acx2@", "");
+            const o = {};
+            [o.tabListEnabled, d] = takeBool(d);
+            [o.playerListBackground, d] = takeBool(d);
+            [o.playerListIcon, d] = takeBool(d);
+            [o.fullbright, d] = takeBool(d);
+            [o.chunkMapEnabled, d] = takeBool(d);
+            [o.chunkMapBackground, d] = takeBool(d);
+            [o.chunkMapX, d] = take(d, 2);
+            [o.chunkMapY, d] = take(d, 2);
+            [o.hitbox, d] = take(d, 1);
+            [o.inventoryHudEnabled, d] = takeBool(d);
+            [o.inventoryHudX, d] = take(d, 2);
+            [o.inventoryHudY, d] = take(d, 2);
+            [o.chatEnabled, d] = takeBool(d);
+            [o.chatBackground, d] = takeBool(d);
+            [o.chatAnimation, d] = takeBool(d);
+            [o.hideChat, d] = takeBool(d);
+            [o.modsList, d] = takeBool(d);
+            [o.leftHand, d] = takeBool(d);
+            [o.durabilityViewerEnabled, d] = takeBool(d);
+            [o.durabilityViewerBackground, d] = takeBool(d);
+            [o.durabilityViewerX, d] = take(d, 2);
+            [o.durabilityViewerY, d] = take(d, 2);
+            [o.offhandHudEnabled, d] = takeBool(d);
+            [o.offhandHudX, d] = take(d, 2);
+            [o.offhandHudY, d] = take(d, 2);
+            [o.hitColorEnabled, d] = takeBool(d);
+            [o.hitColorSelected, d] = take(d, 1);
+            [o.chunkBorder, d] = takeBool(d);
+            [o.framex, d] = takeBool(d);
+            [o.lowFire, d] = takeBool(d);
+            [o.betterGrass, d] = takeBool(d);
+            [o.disableParticles, d] = takeBool(d);
+            [o.clearWater, d] = takeBool(d);
+            [o.disableAnimations, d] = takeBool(d);
+            [o.injectionDisabler, d] = takeBool(d);
+            [o.thirdPersonNametag, d] = take(d, 1);
+            [o.capePhysics, d] = takeBool(d);
+            return o;
+        }
+
+        // =========================
+        // ACX3 DECODER
+        // =========================
+        function normalizeACX3(line) {
+            const prefix = "acx3@";
+            if (!line.startsWith(prefix)) return line;
+
+            const rest = line.slice(prefix.length);
+            const firstAt = rest.indexOf("@");
+            const secondAt = rest.indexOf("@", firstAt + 1);
+            if (firstAt === -1 || secondAt === -1) throw new Error("ACX3 does not contain two @ symbols");
+            const beforeUsername = rest.slice(0, firstAt);
+            const username = rest.slice(firstAt + 1, secondAt);
+            const normalizedBefore = beforeUsername.replace(/\s+/g, "").replace(/O/g, "0").replace(/[Il]/g, "1").toLowerCase();
+            return prefix + normalizedBefore + "@" + username + "@";
+        }
+
+        function decodeACX3(line) {
+            const body = line.replace("acx3@", "");
+            const firstAt = body.indexOf("@");
+            const lastAt = body.lastIndexOf("@");
+            if (firstAt === -1 || lastAt === -1 || firstAt === lastAt) throw new Error("Invalid ACX3 username format");
+            let d = body.slice(0, firstAt);
+            const username = body.slice(firstAt + 1, lastAt);
+            const o = {};
+            [o.cape, d] = take(d, 3);
+            [o.wings, d] = take(d, 2);
+            [o.axolotl, d] = take(d, 1);
+            [o.glasses, d] = take(d, 1);
+            [o.halo, d] = take(d, 2);
+            [o.shield, d] = take(d, 2);
+            [o.players, d] = take(d, 1);
+            o.username = username;
+            return o;
+        }
+
+        function buildGlobalVariables(decoded) {
+          const a1 = decoded.acx1;
+          const a2 = decoded.acx2;
+          const a3 = decoded.acx3;
+
+          return {
+            "$armor_hud_main_toggle": a1.armorHudEnabled,
+            "$armor_hud_boots_position_x": a1.bootsX,
+            "$armor_hud_boots_position_y": a1.bootsY,
+            "$armor_hud_leggings_position_x": a1.leggingsX,
+            "$armor_hud_leggings_position_y": a1.leggingsY,
+            "$armor_hud_chestplate_position_x": a1.chestplateX,
+            "$armor_hud_chestplate_position_y": a1.chestplateY,
+            "$armor_hud_helmet_position_x": a1.helmetX,
+            "$armor_hud_helmet_position_y": a1.helmetY,
+
+            "$direction_main_toggle": a1.directionHudEnabled,
+            "$direction_hud_legacy_toggle_default_state": a1.directionLegacyEnabled,
+            "$direction_hud_position_x": a1.directionX,
+            "$direction_hud_position_y": a1.directionY,
+            "$direction_hud_legacy_position_x": a1.directionLegacyX,
+            "$direction_hud_legacy_position_y": a1.directionLegacyY,
+
+            "$glint_colorizer_main_toggle": a1.glintEnabled,
+            "$custom_glint_color_default_selected": a1.glintSelected,
+
+            "$f8_screen_main_toggle": a1.f8Screen,
+
+            "$server_address_main_toggle": a1.serverAddressEnabled,
+            "$server_address_background_toggle_default_state": a1.serverAddressBackground,
+            "$server_address_icon_toggle_default_state": a1.serverAddressIcon,
+            "$server_address_position_x": a1.serverAddressX,
+            "$server_address_position_y": a1.serverAddressY,
+
+            "$shiny_pots_main_toggle": a1.shinyPotsEnabled,
+            "$shiny_pots_color_default_selected": a1.shinyPotsSelected,
+
+            "$moving_status_main_toggle": a1.movingStatusEnabled,
+            "$moving_status_background_toggle_default_state": a1.movingStatusBackground,
+            "$moving_status_position_x": a1.movingStatusX,
+            "$moving_status_position_y": a1.movingStatusY,
+
+            "$custom_crosshair_main_toggle": a1.customCrosshairEnabled,
+            "$custom_crosshair_default_selected": a1.customCrosshairSelected,
+            "$custom_crosshair_default_color_toggle_default_state": !!a1.crosshairDefaultColor,
+            "$custom_crosshair_color_default_selected": a1.crosshairColor,
+
+            "$tab_list_main_toggle": a2.tabListEnabled,
+            "$player_list_background_toggle_default_state": a2.playerListBackground,
+            "$player_list_icon_toggle_default_state": a2.playerListIcon,
+
+            "$fullbright_main_toggle": a2.fullbright,
+
+            "$chunkmap_main_toggle": a2.chunkMapEnabled,
+            "$chunkmap_background_toggle_default_state": a2.chunkMapBackground,
+            "$chunkmap_position_x": a2.chunkMapX,
+            "$chunkmap_position_y": a2.chunkMapY,
+
+            "$hitbox_main_toggle": a2.hitbox,
+
+            "$inventory_hud_main_toggle": a2.inventoryHudEnabled,
+            "$inventory_hud_position_x": a2.inventoryHudX,
+            "$inventory_hud_position_y": a2.inventoryHudY,
+
+            "$chat_main_toggle": a2.chatEnabled,
+            "$chat_mod_background_toggle_default_state": a2.chatBackground,
+            "$chat_mod_animation_toggle_default_state": a2.chatAnimation,
+            "$hide_chat_toggle_default_state": a2.hideChat,
+
+            "$mods_list_main_toggle": a2.modsList,
+
+            "$left_hand_main_toggle": a2.leftHand,
+
+            "$durability_viewer_main_toggle": a2.durabilityViewerEnabled,
+            "$durability_viewer_background_toggle_default_state": a2.durabilityViewerBackground,
+            "$durability_viewer_position_x": a2.durabilityViewerX,
+            "$durability_viewer_position_y": a2.durabilityViewerY,
+
+            "$offhand_hud_main_toggle": a2.offhandHudEnabled,
+            "$offhand_hud_position_x": a2.offhandHudX,
+            "$offhand_hud_position_y": a2.offhandHudY,
+
+            "$hit_color_main_toggle": a2.hitColorEnabled,
+            "$custom_hit_color_default_selected": a2.hitColorSelected,
+
+            "$chunk_border_main_toggle": a2.chunkBorder,
+
+            "$framex_main_toggle": a2.framex,
+            "$low_fire_toggle_default_state": a2.lowFire,
+            "$better_grass_toggle_default_state": a2.betterGrass,
+            "$disable_particles_toggle_default_state": a2.disableParticles,
+            "$clear_water_toggle_default_state": a2.clearWater,
+            "$disable_animations_toggle_default_state": a2.disableAnimations,
+
+            "$injection_disabler_default_state": a2.injectionDisabler,
+            "$third_person_nametag_default_state": a2.thirdPersonNametag,
+            "$cape_physics_toggle_default_state": a2.capePhysics,
+
+            "$username": a3.username,
+
+            "$cape_default_selected": a3.cape,
+            "$wings_default_selected": a3.wings,
+            "$axolotl_default_selected": a3.axolotl,
+            "$glasses_default_selected": a3.glasses,
+            "$halo_default_selected": a3.halo,
+            "$shields_default_selected": a3.shield,
+            "$player_default_selected": a3.players,
+
+            "$azelux_config_save_state": true,
+            "$azelux_config_version": "0.2",
+
+            "$introduction_menu": false
+          };
+        }
+
+        async function addCapeToZip(zip, capeNumber) {
+          const capeFolder = `assets/capes/${capeNumber}/`;
+
+          // Add frame_000.png → frame_050.png
+          for (let i = 0; i <= 50; i++) {
+            const padded = String(i).padStart(3, "0");
+            const framePath = `${capeFolder}azelux/assets/cosmetics/capes/animated/frame_${padded}.png`;
+            try {
+              const response = await fetch(framePath);
+              if (!response.ok) throw new Error(`${framePath} not found`);
+              const blob = await response.blob();
+              zip.file(`azelux/assets/cosmetics/capes/animated/frame_${padded}.png`, blob);
+            } catch (err) {
+              console.warn(err.message);
+            }
+          }
+
+          // Add azelux.cape.json from render_controllers
+          const jsonPath = `${capeFolder}render_controllers/azelux.cape.json`;
+          try {
+            const response = await fetch(jsonPath);
+            if (!response.ok) throw new Error(`${jsonPath} not found`);
+            const jsonBlob = await response.blob();
+            zip.file("render_controllers/azelux.cape.json", jsonBlob);
+          } catch (err) {
+            console.warn(err.message);
+          }
+        }
+
+        function buildPlayerEntityJson(decoded) {
+          const a2 = decoded.acx2;
+          const a3 = decoded.acx3;
+
+          const thirdPersonIndex = a2.thirdPersonNametag ? 1 : 0;
+
+          return {
+            format_version: "1.10.0",
+            "minecraft:client_entity": {
+              description: {
+                identifier: "minecraft:player",
+                materials: {
+                  default: "entity_alphatest",
+                  cape: "entity_alphatest",
+                  animated: "player_animated",
+                  spectator: "player_spectator"
+                },
+                textures: {
+                  default: "textures/entity/steve",
+
+                  hitbox: `textures/models/hitboxoverlay${a2.hitbox}`,
+
+                  axolotl_cosmetic: `azelux/assets/cosmetics/axolotl/axolotl${a3.axolotl}`,
+                  thirdpersonnametag: `azelux/assets/cosmetics/thirdpersonnametag${thirdPersonIndex}`,
+
+                  halo: `azelux/assets/cosmetics/halo/halo${a3.halo}`,
+                  azelux_cape: `azelux/assets/cosmetics/capes/cape${a3.cape}`,
+                  wings: `azelux/assets/cosmetics/wings/wings${a3.wings}`,
+                  glasses: `azelux/assets/cosmetics/hats/glasses${a3.glasses}`,
+                  shield: `azelux/assets/cosmetics/shields/shield${a3.shield}`,
+                  players: `azelux/assets/cosmetics/players/creeper_armor${a3.players}`
+                }
+              }
+            }
+          };
+        }
+
+        async function saveUsername(username) {
+          if (!username) return;
+
+          const ref = doc(db, "usernames", username.toLowerCase());
+          const snap = await getDoc(ref);
+
+          if (!snap.exists()) {
+            await setDoc(ref, {
+              username: username,
+              createdAt: Date.now()
+            });
+            console.log("Saved username:", username);
+          } else {
+            console.log("Duplicate ignored:", username);
+          }
+        }
+
+        // ---------- UUID v4 ----------
+        function uuidv4() {
+          return crypto.randomUUID();
+        }
+
+        function formatDateTime() {
+          const d = new Date();
+          const pad = n => String(n).padStart(2, "0");
+
+          return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ` +
+                 `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+        }
+
+        const GLINT_COLOR_MAP = {
+          1: "red",
+          2: "orange",
+          3: "yellow",
+          4: "green",
+          5: "light_blue",
+          6: "blue",
+          7: "magenta",
+          8: "white"
+        };
+
+        const HIT_COLOR_FILES = [
+          "agent.render_controllers.json",
+          "allay.render_controllers.json",
+          "armor.leather.render_controllers.json",
+          "armor.render_controllers.json",
+          "axolotl.render_controllers.json",
+          "bat.render_controllers.json",
+          "bee.render_controllers.json",
+          "blaze.render_controllers.json",
+          "camel.render_controllers.json",
+          "cape.render_controllers.json",
+          "cat.render_controllers.json",
+          "chicken.render_controllers.json",
+          "cod.render_controllers.json",
+          "cow.render_controllers.json",
+          "creeper.render_controllers.json",
+          "default.render_controllers.json",
+          "dolphin.render_controllers.json",
+          "donkey_v1_and_v2.render_controllers.json",
+          "donkey_v3.render_controllers.json",
+          "drowned.render_controllers.json",
+          "ender_dragon.render_controllers.json",
+          "enderman.render_controllers.json",
+          "endermite.render_controllers.json",
+          "evoker.render_controllers.json",
+          "fox.render_controllers.json",
+          "frog.render_controllers.json",
+          "ghast.render_controllers.json",
+          "glow_squid.render_controllers.json",
+          "goat.render_controllers.json",
+          "guardian.render_controllers.json",
+          "hoglin.render_controllers.json",
+          "horse_v1_and_v2.render_controllers.json",
+          "horse_v3.render_controllers.json",
+          "husk.render_controllers.json",
+          "iron_golem.render_controllers.json",
+          "llama.render_controllers.json",
+          "magma_cube.render_controllers.json",
+          "mooshroom.render_controllers.json",
+          "mule_v1_and_v2.render_controllers.json",
+          "mule_v3.render_controllers.json",
+          "npc.render_controllers.json",
+          "ocelot.render_controllers.json",
+          "panda.render_controllers.json",
+          "parrot.render_controllers.json",
+          "persona.render_controllers.json",
+          "phantom.render_controllers.json",
+          "pig.render_controllers.json",
+          "piglin.render_controllers.json",
+          "piglin_brute.render_controllers.json",
+          "pillager.render_controllers.json",
+          "player.render_controllers.json",
+          "polar_bear.render_controllers.json",
+          "pufferfish.render_controllers.json",
+          "rabbit.render_controllers.json",
+          "ravager.render_controllers.json",
+          "salmon.render_controllers.json",
+          "sheep.render_controllers.json",
+          "shield.render_controllers.json",
+          "shulker.render_controllers.json",
+          "silverfish.render_controllers.json",
+          "skeleton.render_controllers.json",
+          "skeleton_horse_v1_and_v2.render_controllers.json",
+          "skeleton_horse_v3.render_controllers.json",
+          "slime.render_controllers.json",
+          "slime_armor.render_controllers.json",
+          "sniffer.render_controllers.json",
+          "snow_golem.render_controllers.json",
+          "spider.render_controllers.json",
+          "squid.render_controllers.json",
+          "stray.render_controllers.json",
+          "stray_clothes.render_controllers.json",
+          "strider.render_controllers.json",
+          "tadpole.render_controllers.json",
+          "tropicalfish.render_controllers.json",
+          "turtle.render_controllers.json",
+          "vex.render_controllers.json",
+          "villager.render_controllers.json",
+          "villager_v2.render_controllers.json",
+          "vindicator.render_controllers.json",
+          "wandering_trader.render_controllers.json",
+          "warden.render_controllers.json",
+          "witch.render_controllers.json",
+          "wither_boss.render_controllers.json",
+          "wither_boss_armor.render_controllers.json",
+          "wither_skeleton.render_controllers.json",
+          "wither_skull.render_controllers.json",
+          "wolf.render_controllers.json",
+          "zoglin.render_controllers.json",
+          "zombie.render_controllers.json",
+          "zombie_horse_v1_and_v2.render_controllers.json",
+          "zombie_horse_v3.render_controllers.json",
+          "zombie_pigman.render_controllers.json",
+          "zombie_villager.render_controllers.json",
+          "zombie_villager_v2.render_controllers.json"
+        ];
+
+        async function addHitColorToZip(zip, hitColorIndex) {
+          const basePath =
+            `assets/hit_color_assets/${hitColorIndex}/render_controllers/`;
+
+          for (const file of HIT_COLOR_FILES) {
+            const srcPath = basePath + file;
+
+            try {
+              const res = await fetch(srcPath);
+              if (!res.ok) throw new Error(`${srcPath} not found`);
+
+              const blob = await res.blob();
+              zip.file(`render_controllers/${file}`, blob);
+            } catch (err) {
+              console.warn(err.message);
+            }
+          }
+        }
+
+        const PARTICLE_FILES = [
+          "enchanting_table_particle.json",
+          "end_chest.json",
+          "endrod.json",
+          "evaporation_elephant_toothpaste.json",
+          "evocation_fang.json",
+          "evoker_spell.json",
+          "explosion_cauldron.json",
+          "explosion_death.json",
+          "explosion_egg_destroy.json",
+          "explosion_eyeofender_death.json",
+          "explosion_labtable_fire.json",
+          "explosion_level.json",
+          "explosion_manual.json",
+          "eye_of_ender_bubble.json",
+          "falling_border_dust.json",
+          "falling_dust.json",
+          "falling_dust_concrete_powder.json",
+          "falling_dust_dragon_egg.json",
+          "falling_dust_gravel.json",
+          "falling_dust_red_sand.json",
+          "falling_dust_sand.json",
+          "falling_dust_scaffolding.json",
+          "falling_dust_top_snow.json",
+          "fish_hook.json",
+          "fish_pos.json",
+          "guardian_attack.json",
+          "guardian_water_move.json",
+          "heart.json",
+          "honey_drip.json",
+          "huge_explosion_lab_misc.json",
+          "huge_explosion_level.json",
+          "ice_evaporation.json",
+          "ink.json",
+          "knockback_roar.json",
+          "lab_table_heatblock_dust.json",
+          "lab_table_misc_mystical.json",
+          "large_explosion_level.json",
+          "lava_drip.json",
+          "lava_particle.json",
+          "llama_spit.json",
+          "magnesium_salts.json",
+          "mob_block_spawn.json",
+          "mob_portal.json",
+          "mobflame.json",
+          "mobflame_single.json",
+          "mobspell.json",
+          "mycelium_dust.json",
+          "nectar_drip.json",
+          "note.json",
+          "obsidian_glow_dust.json",
+          "obsidian_tear.json",
+          "phantom_trail.json",
+          "portal_directional.json",
+          "portal_east_west.json",
+          "portal_north_south.json",
+          "portal_reverse.json",
+          "rain_splash.json",
+          "redstone_ore_dust.json",
+          "redstone_repeater_dust.json",
+          "redstone_torch_dust.json",
+          "redstone_wire_dust.json",
+          "rising_border_dust.json",
+          "shulker_bullet.json",
+          "silverfish_grief.json",
+          "soul.json",
+          "sparkler.json",
+          "splashpotionspell.json",
+          "sponge_absorb_bubble.json",
+          "squid_flee.json",
+          "squid_ink_bubble.json",
+          "squid_move.json",
+          "stunned.json",
+          "totem.json",
+          "totem_manual.json",
+          "underwater_torch_bubble.json",
+          "villager_angry.json",
+          "villager_happy.json",
+          "water_drip.json",
+          "water_evaporation_actor.json",
+          "water_evaporation_bucket.json",
+          "water_evaporation_manual.json",
+          "water_spash_manual.json",
+          "water_splash.json",
+          "water_wake.json",
+          "wither_boss_invulnerable.json",
+          "arrowspell.json",
+          "balloon_gas.json",
+          "basic_bubble.json",
+          "basic_bubble_manual.json",
+          "basic_crit.json",
+          "basic_flame.json",
+          "basic_portal.json",
+          "basic_smoke.json",
+          "bleach.json",
+          "block_destruct.json",
+          "block_slide.json",
+          "blue_flame.json",
+          "breaking_item_icon.json",
+          "breaking_item_terrain.json",
+          "bubble_column_bubble.json",
+          "bubble_column_down.json",
+          "bubble_column_up.json",
+          "camera_shoot_explosion.json",
+          "campfire_smoke.json",
+          "campfire_smoke_tall.json",
+          "cauldron_bubble.json",
+          "cauldron_splash.json",
+          "cauldronspell.json",
+          "colored_flame.json",
+          "conduit.json",
+          "conduit_absorb.json",
+          "conduit_attack.json",
+          "critical_hit.json",
+          "crop_growth.json",
+          "dolphin_move.json",
+          "dragon_breath_fire.json",
+          "dragon_breath_lingering.json",
+          "dragon_breath_trail.json",
+          "dragon_death_explosion.json",
+          "dragon_destroy_block.json",
+          "dragon_dying_explosion.json"
+        ];
+
+        async function addParticlesToZip(zip) {
+          for (const file of PARTICLE_FILES) {
+            const path = `assets/particles/${file}`; // relative to website
+            try {
+              const response = await fetch(path);
+              if (!response.ok) throw new Error(`${path} not found`);
+              const blob = await response.blob();
+              zip.file(`particles/${file}`, blob);
+            } catch (err) {
+              console.warn(err.message);
+            }
+          }
+        }
+
+        async function generateNametagImage(username) {
+            const canvas = document.createElement("canvas");
+            canvas.width = 2000;
+            canvas.height = 133;
+
+            const ctx = canvas.getContext("2d");
+
+            // Set font size
+            const fontSize = 115; // adjust if needed
+            ctx.font = `${fontSize}px Minecraft`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+
+            // Measure text width
+            const textMetrics = ctx.measureText(username);
+            const textWidth = textMetrics.width;
+            const padding = 14; // 4px padding on each side
+
+            const offsetX = 2; // positive = move right, negative = move left
+            const offsetY = 1;// positive = move down, negative = move up
+
+            // Draw background bar only behind the text
+            ctx.fillStyle = "rgba(0, 0, 0, 0.32)";
+            const barHeight = 127;
+            const barX = canvas.width / 2 - textWidth / 2 - padding;
+            const barY = canvas.height / 2 - barHeight / 2;
+            const barWidth = textWidth + padding * 2;
+            ctx.fillRect(barX, barY, barWidth, barHeight);
+
+            // Draw text in the center
+            ctx.fillStyle = "#B5B5B5";
+            ctx.fillText(username, canvas.width / 2 + offsetX, canvas.height / 2 + offsetY);
+
+            return new Promise((resolve) => {
+                canvas.toBlob((blob) => resolve(blob), "image/png");
+            });
+        }
+
+        async function mergeZipContents(targetZip, zipUrl, stripRoot = true) {
+              const res = await fetch(zipUrl);
+              if (!res.ok) throw new Error(`${zipUrl} not found`);
+
+              const zipBlob = await res.blob();
+              const sourceZip = await JSZip.loadAsync(zipBlob);
+
+              const entries = Object.values(sourceZip.files);
+
+              for (const entry of entries) {
+                if (entry.dir) continue;
+
+                const content = await entry.async("blob");
+
+                // Optionally remove top-level folder inside the zip
+                const path = stripRoot
+                  ? entry.name.split("/").slice(1).join("/")
+                  : entry.name;
+
+                if (!path) continue;
+
+                targetZip.file(path, content);
+              }
+            }
+
+
+        // ---------- ZIP GENERATION ----------
+        async function generateConfigZip(username) {
+            if (this.generating) return; // Prevent multiple clicks
+            this.generating = true;
+
+            try {
+            if (!decoded) throw new Error("No decoded data");
+
+          const zip = new JSZip();
+          
+          await saveUsername(decoded.acx3.username);
+
+          // Generate third-person nametag for the player
+            try {
+                const nametagBlob = await generateNametagImage(decoded.acx3.username);
+                zip.file("azelux/assets/cosmetics/thirdpersonnametag1.png", nametagBlob);
+            }   catch (err) {
+                console.warn("Failed to generate nametag image:", err);
+            }
+
+          const headerUUID = uuidv4();
+          const moduleUUID = uuidv4();
+
+            // Add selected cape assets
+          await addCapeToZip(zip, decoded.acx3.cape);
+
+          const playerEntity = buildPlayerEntityJson(decoded);
+            zip.file(
+              "entity/player.entity.json",
+              JSON.stringify(playerEntity, null, 2)
+            );
+
+          const manifest = {
+            format_version: 1,
+            header: {
+              description: `${username}'s Config\nGenerated ${formatDateTime()}`,
+              name: "Azelux Client Config",
+              uuid: headerUUID,
+              version: [7, 1, 0]
+            },
+            modules: [
+              {
+                description: "V1.0.0",
+                type: "resources",
+                uuid: moduleUUID,
+                version: [7, 1, 0]
+              }
+            ]
+          };
+
+          zip.file("manifest.json", JSON.stringify(manifest, null, 4));
+
+          const globals = buildGlobalVariables(decoded);
+          zip.file(
+            "ui/_global_variables.json",
+            JSON.stringify(globals, null, 2)
+          );
+
+          const decodedConfig = globals;
+
+          if (decodedConfig["$cape_physics_toggle_default_state"]) {
+            try {
+              const response = await fetch("assets/cape_physics/anim.json"); // anim
+              if (!response.ok) throw new Error("anim.json not found in assets folder");
+              const blob = await response.blob();
+              zip.file("animations/azelux.cape.json", blob);
+            } catch (err) {
+              console.warn(err.message);
+            }
+                try {
+              const response = await fetch("assets/cape_physics/geo.json"); // geo
+              if (!response.ok) throw new Error("geo.json not found in assets folder");
+              const blob = await response.blob();
+              zip.file("models/entity/azelux.cape.json", blob);
+            } catch (err) {
+              console.warn(err.message);
+            }
+          }
+
+        if (decodedConfig["$hit_color_main_toggle"]) {
+          const hitColorIndex = decodedConfig["$custom_hit_color_default_selected"];
+          await addHitColorToZip(zip, hitColorIndex);
+        }
+
+          if (decodedConfig["$left_hand_main_toggle"]) {
+              try {
+                await mergeZipContents(zip, "assets/left_hand.zip", false);
+              } catch (err) {
+                console.warn("Failed to merge left_hand.zip:", err);
+              }
+            }
+
+        // ---------- FRAMEX-DEPENDENT ASSETS ----------
+        if (decodedConfig["$framex_main_toggle"]) {
+
+          // ---------- DISABLE PARTICLES ----------
+          if (decodedConfig["$disable_particles_toggle_default_state"]) {
+            await addParticlesToZip(zip);
+          }
+
+          // ---------- DISABLE ANIMATIONS ----------
+          if (decodedConfig["$disable_animations_toggle_default_state"]) {
+            try {
+              const response = await fetch("assets/no_animations.json"); // relative path
+              if (!response.ok) throw new Error("no_animations.json not found in assets folder");
+              const blob = await response.blob();
+              zip.file("textures/flipbook_textures.json", blob);
+            } catch (err) {
+              console.warn(err.message);
+            }
+          }
+
+          // ---------- LOW FIRE ----------
+          if (decodedConfig["$low_fire_toggle_default_state"]) {
+            for (const f of ["fire_0.png","fire_1.png","soul_fire_0.png","soul_fire_1.png"]) {
+              try {
+                const res = await fetch(`assets/fire_assets/${f}`);
+                if (res.ok) zip.file(`textures/blocks/${f}`, await res.blob());
+              } catch (e) {
+                console.warn(`Failed fire file: ${f}`, e);
+              }
+            }
+          }
+
+          // Clear water
+          if (decodedConfig["$clear_water_toggle_default_state"]) {
+            try {
+              const res = await fetch("assets/water_assets/biomes_client.json");
+              if (res.ok) zip.file("biomes_client.json", await res.blob());
+            } catch (e) {
+              console.warn("biomes_client.json failed", e);
+            }
+          }
+
+          // ---------- BETTER GRASS ----------
+          if (decodedConfig["$better_grass_toggle_default_state"]) {
+            try {
+              const res = await fetch("assets/grass_assets/terrain_texture.json");
+              if (res.ok) zip.file("textures/terrain_texture.json", await res.blob());
+            } catch (e) {
+              console.warn("terrain_texture.json failed", e);
+            }
+            try {
+              const res = await fetch("assets/grass_assets/blocks.json");
+              if (res.ok) zip.file("blocks.json", await res.blob());
+            } catch (e) {
+              console.warn("blocks.json failed", e);
+            }
+          }
+
+        }
+
+          if (decodedConfig["$glint_colorizer_main_toggle"]) {
+            const colorName = GLINT_COLOR_MAP[decodedConfig["$custom_glint_color_default_selected"]];
+            const actorPath = `assets/glint_assets/${colorName}_actor_enchant_glint.png`;
+            const itemPath = `assets/glint_assets/${colorName}_enchant_glint.png`;
+            const addFile = async (filePath, zipPath) => { try { const res = await fetch(filePath); if (res.ok){ zip.file(zipPath, await res.blob()); } } catch(e){console.warn(e);} };
+            await addFile(actorPath, "textures/misc/enchanted_actor_glint.png");
+            await addFile(itemPath, "textures/misc/enchanted_item_glint.png");
+          }
+
+          if (decodedConfig["$custom_crosshair_default_color_toggle_default_state"]) {
+            const crosshairIndex = decodedConfig["$custom_crosshair_default_selected"];
+            await (async()=>{ try { const res = await fetch(`assets/crosshair_assets/crosshair${crosshairIndex}.png`); if(res.ok){ zip.file("textures/ui/cross_hair.png", await res.blob()); } }catch(e){console.warn(e);} })();
+          }
+
+            // ---------- CHUNK BORDERS ----------
+            if (decodedConfig["$chunk_border_main_toggle"]) {
+            try { const res = await fetch("assets/chunk_borders.json"); if(res.ok){ zip.file("animation_controllers/border.animation_controllers.json", await res.blob()); } } catch(e){console.warn("chunk_border_animation_controller.json failed", e);}
+          }
+
+          // ---------- PACK ICON ----------
+          const iconResponse = await fetch("assets/pack_icon.png");
+          if (!iconResponse.ok) {
+            throw new Error("pack_icon.png not found in assets folder");
+          }
+          const iconBlob = await iconResponse.blob();
+          zip.file("pack_icon.png", iconBlob);
+
+          const zipBlob = await zip.generateAsync({ type: "blob" });
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(zipBlob);
+          a.download = `azelux_config_${username}.mcpack`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(a.href);
+          } finally {
+                this.generating = false;
+            }
+        }
+
+        // ---------- DOWNLOAD BUTTON ----------
+        document.getElementById("downloadZip").addEventListener("click", () => {
+          if (!decoded?.acx3?.username) {
+            alert("Username not detected. Process a screenshot first.");
+            return;
+          }
+          generateConfigZip(decoded.acx3.username).catch(err => {
+            console.error(err);
+            alert("Failed to generate zip");
+          });
+        });
+
+</script>
+
+<footer class="site-footer">
+    &copy; Azelux Client 2026
+</footer>
+</body>
+</html>

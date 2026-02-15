@@ -1,0 +1,79 @@
+{
+    "format_version": "1.10.0",
+    "render_controllers": {
+        "controller.render.ender_dragon_default": {
+            "geometry": "Geometry.default",
+            "materials": [
+                {
+                    "*": "Material.default"
+                }
+            ],
+            "textures": [
+                "Texture.default"
+            ],
+            "is_hurt_color": {
+                "r": "1.0",
+                "g": "0.45",
+                "b": "0.85",
+                "a": "0.5"
+            },
+            "on_fire_color": {
+                "r": "1.0",
+                "g": "0.45",
+                "b": "0.85",
+                "a": "0.5"
+            }
+        },
+        "controller.render.ender_dragon_death_pre_pass": {
+            "geometry": "Geometry.default",
+            "materials": [
+                {
+                    "*": "Material.dissolve_0"
+                }
+            ],
+            "textures": [
+                "Texture.exploding"
+            ],
+            "part_visibility": [
+                {
+                    "*": "query.death_ticks > 1.0"
+                }
+            ],
+            "is_hurt_color": {
+                "r": "1.0",
+                "g": "0.45",
+                "b": "0.85",
+                "a": "0.5"
+            },
+            "on_fire_color": {
+                "r": "1.0",
+                "g": "0.45",
+                "b": "0.85",
+                "a": "0.5"
+            }
+        },
+        "controller.render.ender_dragon_death_main_pass": {
+            "geometry": "Geometry.default",
+            "materials": [
+                {
+                    "*": "Material.dissolve_1"
+                }
+            ],
+            "textures": [
+                "Texture.default"
+            ],
+            "is_hurt_color": {
+                "r": "1.0",
+                "g": "0.45",
+                "b": "0.85",
+                "a": "0.5"
+            },
+            "on_fire_color": {
+                "r": "1.0",
+                "g": "0.45",
+                "b": "0.85",
+                "a": "0.5"
+            }
+        }
+    }
+}

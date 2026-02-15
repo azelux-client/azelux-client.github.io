@@ -1,0 +1,61 @@
+{
+    "format_version": "1.8.0",
+    "render_controllers": {
+      "controller.render.azelux.cape": {
+        "geometry": "Geometry.cape_azelux",
+        "materials": [
+          {
+            "*": "Material.default"
+          }
+        ],
+        "arrays": {
+          "textures": {
+            "array.capes": [
+              "texture.cape1",
+              "texture.cape2",
+              "texture.cape3",
+              "texture.cape4",
+              "texture.cape5",
+              "texture.cape6",
+              "texture.cape7",
+              "texture.cape8",
+              "texture.cape9",
+              "texture.cape10",
+              "texture.cape11",
+              "texture.cape12",
+              "texture.cape13",
+              "texture.cape14",
+              "texture.cape15",
+              "texture.cape16",
+              "texture.cape17",
+              "texture.cape18",
+              "texture.cape19",
+              "texture.cape20",
+              "texture.cape21",
+              "texture.cape22",
+              "texture.cape23",
+              "texture.cape24",
+              "texture.cape25",
+              "texture.cape26",
+              "texture.cape27",
+              "texture.cape28",
+              "texture.cape29",
+              "texture.cape30",
+              "texture.cape31",
+              "texture.cape32",
+              "texture.cape33",
+              "texture.cape34",
+              "texture.cape35",
+              "texture.cape36",
+              "texture.cape37",
+              "texture.cape38",
+              "texture.cape39",
+              "texture.cape40",
+              "texture.cape41"
+            ]
+          }
+        },
+        "textures": [ "array.capes[(query.anim_time * 22 )]" ]
+      }
+    }
+  }

@@ -1,0 +1,345 @@
+/* ===== RESET ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: #000;
+    color: #fff;
+    overflow-x: hidden;
+}
+
+/* ===== HEADER ===== */
+.topbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 70px;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    z-index: 1000;
+    justify-content: space-between;
+}
+
+/* Left section - logo and brand */
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+/* Center section - navigation links */
+.topbar-nav {
+    display: flex;
+    gap: 22px;
+    justify-content: center;
+    flex: 2; /* Takes more space to help centering */
+}
+
+.topbar-nav a {
+    text-decoration: none;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    opacity: 0.85;
+    white-space: nowrap; /* Prevent text wrapping */
+}
+
+.topbar-nav a:hover {
+    opacity: 1;
+}
+
+/* Right section - online status, download button, menu */
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex: 1;
+    justify-content: flex-end;
+}
+
+.logo-small-img {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+body.staff-page .hero {
+    position: fixed; /* stay behind */
+    height: 100%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 0; /* make sure staff-section is above */
+}
+
+body.staff-page .staff-section {
+    position: relative;
+    z-index: 1; /* above background */
+    padding-top: 120px;
+}
+
+
+.online-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    background: #00ff5a;
+    border-radius: 50%;
+}
+
+.download-header {
+    background: #00c853;
+    border: none;
+    color: white;
+    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.menu-btn {
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* ===== HERO ===== */
+.hero {
+    height: 100vh;
+    position: relative; /* ← makes it part of normal flow */
+    width: 100%;
+    overflow: hidden;
+    z-index: 0;
+}
+
+.hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: url("background.png") center / cover no-repeat;
+    filter: blur(8px);
+    transform: scale(1.1);
+    z-index: 0;
+}
+
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 1;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    max-width: 800px;
+    padding: 0 20px;
+    margin: 0 auto;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Hide hero content only on staff page */
+body.staff-page .hero-content {
+    display: none;
+}
+
+.logo-large-img {
+    width: 200px;
+    margin-bottom: 20px;
+}
+
+.hero-content h1 {
+    font-size: 64px;
+    font-weight: 900;
+    letter-spacing: 3px;
+}
+
+.subtitle {
+    margin-top: 12px;
+    font-size: 18px;
+    color: #cfd8dc;
+}
+
+/* ===== CTA ===== */
+.cta-buttons {
+    margin-top: 32px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.btn {
+    padding: 14px 28px;
+    font-size: 16px;
+    font-weight: 700;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn.download {
+    background: #00c853;
+    color: white;
+}
+
+.btn.config {
+    background: #f39c12;
+    color: black;
+}
+
+/* ===== STAFF SECTION ===== */
+.staff-section {
+    position: relative;
+    z-index: 10; /* Higher z-index to be above hero */
+    padding: 120px 24px 60px;
+    text-align: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.staff-section h2 {
+    font-size: 48px;
+    font-weight: 900;
+    margin-bottom: 40px;
+    letter-spacing: 2px;
+}
+
+.staff-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 32px;
+}
+
+.staff-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 16px;
+    padding: 24px 16px;
+    text-align: center;
+    transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.staff-card:hover {
+    transform: translateY(-6px);
+    background: rgba(255,255,255,0.08);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.staff-card img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.3);
+    margin-bottom: 12px;
+}
+
+.staff-card h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.staff-card p {
+    font-size: 14px;
+    color: #cfd8dc;
+}
+
+/* ===== BURGER MENU ===== */
+.burger-menu {
+    position: fixed;
+    top: 70px;
+    right: 0;
+    width: 260px;
+    height: calc(100vh - 70px);
+    background: #000;
+    display: none;
+    flex-direction: column;
+    padding: 24px;
+    z-index: 1001;
+}
+
+.burger-menu a {
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    margin-bottom: 18px;
+    font-size: 14px;
+}
+
+.site-footer {
+    background-color: #000;      /* Black background */
+    color: #fff;                 /* White text */
+    text-align: center;          /* Center the text */
+    padding: 32px 0;             /* Some vertical spacing */
+    font-size: 14px;             /* Small, subtle text */
+    position: relative;          /* Ensure it flows naturally */
+    z-index: 10;
+}
+
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1000px) {
+    .topbar-nav {
+        display: none;
+    }
+    
+    .hero-content h1 {
+        font-size: 48px;
+    }
+    
+    .staff-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-content h1 {
+        font-size: 36px;
+    }
+    
+    .cta-buttons {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .staff-section h2 {
+        font-size: 36px;
+    }
+    
+    .staff-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}

@@ -1,0 +1,29 @@
+{
+    "format_version": "1.8.0",
+    "render_controllers": {
+        "controller.render.allay": {
+            "geometry": "Geometry.default",
+            "materials": [
+                {
+                    "*": "Material.default"
+                }
+            ],
+            "textures": [
+                "Texture.default"
+            ],
+            "ignore_lighting": true,
+            "is_hurt_color": {
+                "r": "0.0",
+                "g": "0.3",
+                "b": "0.9",
+                "a": "0.5"
+            },
+            "on_fire_color": {
+                "r": "0.0",
+                "g": "0.3",
+                "b": "0.9",
+                "a": "0.5"
+            }
+        }
+    }
+}

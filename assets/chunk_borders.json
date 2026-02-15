@@ -1,0 +1,23 @@
+{
+	"format_version": "1.10",
+	"animation_controllers": {
+		"controller.animation.border": {
+			"initial_state": "off",
+			"states": {
+				"on": {
+					"particle_effects": [
+						{ "effect": "border_setup" }
+					],
+					"transitions": [
+						{ "off": "!query.is_local_player || variable.is_paperdoll" }
+					]
+				},
+				"off": {
+					"transitions": [
+						{ "on": "query.is_local_player && !variable.is_paperdoll" }
+					]
+				}
+			}
+		}
+	}
+}

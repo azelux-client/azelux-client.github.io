@@ -1,0 +1,30 @@
+{
+    "format_version": "1.8.0",
+    "render_controllers": {
+      "controller.render.azelux.cape": {
+        "geometry": "Geometry.cape_azelux",
+        "materials": [
+          {
+            "*": "Material.default"
+          }
+        ],
+        "arrays": {
+          "textures": {
+            "array.capes": [
+              "texture.cape1",
+              "texture.cape2",
+              "texture.cape3",
+              "texture.cape4",
+              "texture.cape5",
+              "texture.cape6",
+              "texture.cape7",
+              "texture.cape8",
+              "texture.cape9",
+              "texture.cape10"
+            ]
+          }
+        },
+        "textures": [ "array.capes[(query.anim_time * 5 )]" ]
+      }
+    }
+  }

@@ -1,315 +1,78 @@
-<!doctype html>
-<html lang="de">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Azelux Client</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-  <!-- External libs -->
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <title>Azelux Client</title>
 
-  <style>
-    :root{
-      --bg-url: url('background.jpg'); /* place your custom background.jpg next to this file */
-      --accent: #ffffff;
-      --card-bg: rgba(10,12,16,0.65);
-      --glass: rgba(8,9,12,0.55);
-      --text: #e9f3f8;
-      --muted: rgba(233,243,248,0.65);
-    }
+	<link rel="icon" href="/favicon.ico">
 
-    html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;background:#070709;color:var(--text);}
+    <!-- ✅ FIX: prevent font loading layout shift -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    /* background */
-    body::before{
-      content:"";
-      position:fixed;inset:0;z-index:-3;
-      background-image:var(--bg-url);background-size:cover;background-position:center;
-      filter:brightness(0.35) saturate(0);
-      transform:scale(1.02);
-    }
-
-    /* subtle vignette */
-    body::after{
-      content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
-      background:radial-gradient(1200px 600px at 50% 40%, rgba(0,0,0,0) 0%, rgba(0,0,0,0.25) 40%, rgba(0,0,0,0.6) 100%);
-    }
-
-    header{
-      position:fixed;left:0;right:0;top:0;height:68px;padding:12px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px;z-index:40;
-      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      backdrop-filter:blur(8px) saturate(1.05);
-      box-shadow:0 6px 20px rgba(2,6,12,0.6);
-      border-bottom:1px solid rgba(255,255,255,0.02);
-    }
-
-    .brand{display:flex;align-items:center;gap:12px}
-    .brand .logo{width:40px;height:40px;border-radius:8px;background:none;display:flex;align-items:center;justify-content:center}
-    .brand .logo img{width:100%;height:100%;object-fit:contain;filter:grayscale(1) brightness(1.1);}
-    .brand h1{font-size:16px;margin:0;letter-spacing:0.2px}
-    .brand p{margin:0;font-size:12px;color:var(--muted)}
-
-    .top-actions{display:flex;gap:10px;align-items:center}
-    .btn{appearance:none;border:0;padding:8px 12px;border-radius:8px;background:transparent;color:var(--text);cursor:pointer;font-weight:600}
-    .btn.primary{background:#fff;color:#000}
-    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);}
-    .discord-btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;background:#000;color:#fff;font-weight:700;text-decoration:none;border:1px solid rgba(255,255,255,0.15)}
-
-    main{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:120px 20px}
-
-    .card{width:820px;max-width:95%;padding:28px;border-radius:14px;background:var(--card-bg);box-shadow:0 10px 50px rgba(2,6,12,0.7);border:1px solid rgba(255,255,255,0.03)}
-
-    .card-grid{display:grid;grid-template-columns:1fr 300px;gap:18px;align-items:start}
-
-    /* left column */
-    .controls{display:flex;flex-direction:column;gap:14px}
-    label.file{display:flex;align-items:center;gap:14px;padding:12px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px dashed rgba(255,255,255,0.03);cursor:pointer}
-    label.file input{display:none}
-    .file .meta{font-size:13px;color:var(--muted)}
-
-    .status{font-size:13px;color:var(--muted)}
-
-    .actions{display:flex;gap:10px}
-    .small-note{font-size:12px;color:var(--muted)}
-
-    /* right column */
-    .preview{padding:14px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.02)}
-    .preview h3{margin:0 0 10px 0;font-size:14px}
-    .code{background:#071016;padding:12px;border-radius:8px;font-family:SFMono-Regular,monospace;font-size:13px;color:#9ad6f7;overflow:auto;max-height:240px}
-
-    footer{margin-top:16px;font-size:13px;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
-
-    /* cursor glow */
-    .cursor-glow{position:fixed;left:0;top:0;pointer-events:none;z-index:50;width:160px;height:160px;border-radius:50%;transform:translate(-50%,-50%);mix-blend-mode:screen;filter:blur(28px);opacity:0.7;background:radial-gradient(circle at center, rgba(255,255,255,0.18), rgba(255,255,255,0.08) 25%, rgba(255,255,255,0) 60%)}
-
-    /* responsive */
-    @media (max-width:820px){
-      .card-grid{grid-template-columns:1fr}
-      .preview{order:2}
-    }
-  </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header>
-    <div class="brand">
-      <div class="logo"><img src="https://i.postimg.cc/yYwBK0Pf/logo-512.png" alt="Azelux Logo"></div>
-      <div>
-        <h1>Azelux Client</h1>
-        <p>Resource Pack Generator</p>
-      </div>
+
+<header class="topbar">
+    <div class="topbar-left">
+        <img src="logo.png" class="logo-small-img" alt="Azelux Logo">
+        <span class="brand-text">AZELUX CLIENT</span>
     </div>
 
-    <div class="top-actions">
-      <a class="discord-btn" href="https://dsc.gg/azelux" target="_blank" rel="noopener">Join Discord</a>
-    </div>
-  </header>
+    <nav class="topbar-nav">
+        <a href="index.html">HOME</a>
+        <a href="staff.html">STAFF</a>
+        <a href="config.html">CONFIG SAVING</a>
+    </nav>
 
-  <main>
-    <div class="card">
-      <div class="card-grid">
-
-        <div class="controls">
-
-          <label class="file">
-            <input id="imageInput" type="file" accept="image/*">
-            <div>
-              <div style="font-weight:700">Upload Screenshot</div>
-              <div class="meta" id="fileMeta">please upload a screenshot of your config code</div>
-            </div>
-          </label>
-
-          <div class="status" id="status">Ready</div>
-
-          <div class="actions">
-            <button id="generateBtn" class="btn primary" disabled>Generate Pack</button>
-            <button id="downloadBtn" class="btn ghost" disabled>Download</button>
-          </div>
-          <footer>
-            <div class="small-note">Azelux Client • Config Generator</div>
-          </footer>
+    <div class="topbar-right">
+        <div class="online-status">
+            <span class="dot"></span>
+            <span id="online-count">– online</span>
         </div>
 
-        <div class="preview">
-          <h3>Detected ACX Code</h3>
-          <div id="codeOutput" class="code">—</div>
-        </div>
-
-      </div>
+        <a href="https://dsc.gg/azelux" class="download-header">
+            DOWNLOAD
+        </a>
     </div>
-  </main>
+</header>
 
-  <div class="cursor-glow" id="cursorGlow"></div>
+<!-- Burger Menu -->
+<div class="burger-menu" id="burgerMenu">
+    <a href="index.html">HOME</a>
+    <a href="staff.html">STAFF</a>
+    <a href="config.html">CONFIG SAVING</a>
+</div>
 
-  <script>
-    // -- keep same logic, but hide decoded details from UI; expose only code and buttons
-    const imageInput = document.getElementById('imageInput');
-    const generateBtn = document.getElementById('generateBtn');
-    const downloadBtn = document.getElementById('downloadBtn');
-    const status = document.getElementById('status');
-    const codeOutput = document.getElementById('codeOutput');
-    const cursorGlow = document.getElementById('cursorGlow');
+<section class="hero">
+    <div class="hero-overlay"></div>
 
-    let decodedConfig = null;
+    <div class="hero-content">
+        <img src="logo.png" class="logo-large-img" alt="Azelux Client Logo">
 
-    // ----- utilities -----
-    function uuidv4(){ return crypto.randomUUID(); }
+        <h1>AZELUX CLIENT</h1>
+        <p class="subtitle">
+            A powerful Minecraft Bedrock Resource Pack with advanced config saving.
+        </p>
 
-    const GLINT_COLOR_MAP = {1:'red',2:'orange',3:'yellow',4:'green',5:'light_blue',6:'blue',7:'magenta',8:'white'};
+        <div class="cta-buttons">
+            <a href="https://dsc.gg/azelux" class="btn download">
+                DOWNLOAD
+            </a>
+            <a href="config.html" class="btn config">
+                CONFIG
+            </a>
+        </div>
+    </div>
+</section>
 
-    // small helper to set status
-    function setStatus(t){ status.textContent = t; }
-
-    imageInput.addEventListener('change', ()=>{
-      const f = imageInput.files[0];
-      if(!f){ document.getElementById('fileMeta').textContent = 'PNG, JPG — take screenshot from ACX overlay'; generateBtn.disabled = true; return; }
-      document.getElementById('fileMeta').textContent = f.name + ' • ' + Math.round(f.size/1024)+'KB';
-      generateBtn.disabled = false; setStatus('File ready');
-    });
-
-    // OCR + decode
-    async function runOCR(){
-      const file = imageInput.files[0];
-      if(!file) throw new Error('No image');
-      setStatus('Scanning image…');
-      const { data } = await Tesseract.recognize(file, 'eng', { tessedit_char_whitelist: 'acx0123456789' });
-      const raw = (data.text||'').replace(/\s+/g,'');
-      const match = raw.match(/acx[0-9]+/i);
-      if(!match) { setStatus('No ACX code found'); codeOutput.textContent = '—'; throw new Error('No ACX code found'); }
-      const acx = match[0].toLowerCase();
-      codeOutput.textContent = acx;
-      setStatus('Code detected');
-      return acx;
-    }
-
-    function decodeACX(data){
-      let i = 0; const next = ()=> data[i++] ?? '0';
-      decodedConfig = {
-        "$armor_hud_main_toggle_default": next() === '1',
-        "$armor_hud_split_toggle_default_state": next() === '1',
-        "$direction_main_toggle_default": next() === '1',
-        "$direction_hud_legacy_toggle_default_state": next() === '1',
-        "$glint_colorizer_main_toggle": next() === '1',
-        "$custom_glint_color_default_selected": Number(next()),
-        "$totem_counter_main_toggle": next() === '1',
-        "$totem_counter_background_toggle_default_state": next() === '1',
-        "$server_address_main_toggle": next() === '1',
-        "$server_address_background_toggle_default_state": next() === '1',
-        "$server_address_icon_toggle_default_state": next() === '1',
-        "$shiny_pots_main_toggle": next() === '1',
-        "$shiny_pots_color_default_selected": Number(next()),
-        "$moving_status_main_toggle": next() === '1',
-        "$moving_status_background_toggle_default_state": next() === '1',
-        "$custom_crosshair_main_toggle": next() === '1',
-        "$custom_crosshair_default_selected": Number(next()),
-        "$custom_crosshair_default_color_toggle_default_state": next() === '1',
-        "$custom_crosshair_color_default_selected": Number(next()),
-        "$tab_list_main_toggle": next() === '1',
-        "$player_list_background_toggle_default_state": next() === '1',
-        "$player_list_icon_toggle_default_state": next() === '1',
-        "$emote_disabler_default_state": next() === '1',
-		"$injection_disabler_default_state": next() === '1',
-        "$low_fire_toggle_default_state": next() === '1',
-        "$better_grass_toggle_default_state": next() === '1',
-        "$cape_default_selected": Number(next()),
-        "$wings_default_selected": Number(next()),
-        "$halo_default_selected": Number(next()),
-        "$shields_default_selected": Number(next()),
-        "$players_default_selected": Number(next()),
-        "$azelux_config_version": '0.1'
-      };
-      setStatus('Configuration decoded');
-      downloadBtn.disabled = false;
-    }
-
-    // generate pack function (same logic as original but adapted)
-    generateBtn.addEventListener('click', async ()=>{
-      try{
-        generateBtn.disabled = true; downloadBtn.disabled = true; setStatus('Scanning & decoding...');
-        const acx = await runOCR();
-        decodeACX(acx.substring(3));
-      }catch(e){ console.warn(e); generateBtn.disabled = false; }
-    });
-
-    // ZIP export
-    downloadBtn.addEventListener('click', async ()=>{
-      if(!decodedConfig) return; setStatus('Preparing resource pack...');
-      const zip = new JSZip();
-
-      zip.folder('ui').file('_global_variables.json', JSON.stringify(decodedConfig,null,2));
-
-      const emotesDisabled = decodedConfig['$emote_disabler_default_state'];
-      zip.folder('entity').file('player.entity.json', JSON.stringify({
-        format_version: '1.10.0',
-        'minecraft:client_entity': { description: { identifier: 'minecraft:player', textures: {
-          halo: `textures/azelux/cosmetics/halo${decodedConfig['$halo_default_selected']}`,
-          azelux_cape: `textures/azelux/cosmetics/capes/cape${decodedConfig['$cape_default_selected']}`,
-          wings: `textures/azelux/cosmetics/wings/wings${decodedConfig['$wings_default_selected']}`,
-          shield: `textures/azelux/cosmetics/shields/shield${decodedConfig['$shields_default_selected']}`,
-          charged: `textures/azelux/cosmetics/players/creeper_armor${decodedConfig['$players_default_selected']}`
-        }, animations: {
-          emotes: 'controller.animation.sigmaemote',
-          'animation.player.floss_dance': emotesDisabled ? '0' : 'animation.player.floss_dance',
-          'animation.player.griddy': emotesDisabled ? '0' : 'animation.player.griddy',
-          'animation.player.dab': emotesDisabled ? '0' : 'animation.player.dab',
-          'animation.player.pray': emotesDisabled ? '0' : 'animation.player.pray'
-        } } }
-      },null,2));
-
-      // GLINT
-      if(decodedConfig['$glint_colorizer_main_toggle']){
-        const colorName = GLINT_COLOR_MAP[decodedConfig['$custom_glint_color_default_selected']];
-        const actorPath = `glint_assets/${colorName}_actor_enchant_glint.png`;
-        const itemPath = `glint_assets/${colorName}_enchant_glint.png`;
-        const addFile = async (filePath, zipPath)=>{ try{ const res = await fetch(filePath); if(res.ok) zip.file(zipPath, await res.blob()); }catch(e){ console.warn(e); } };
-        await addFile(actorPath, 'textures/misc/enchanted_actor_glint.png');
-        await addFile(itemPath, 'textures/misc/enchanted_item_glint.png');
-      }
-
-      // CROSSHAIR
-      if(decodedConfig['$custom_crosshair_default_color_toggle_default_state']){
-        const crosshairIndex = decodedConfig['$custom_crosshair_default_selected'];
-        try{ const res = await fetch(`crosshair_assets/crosshair${crosshairIndex}.png`); if(res.ok) zip.file('textures/ui/cross_hair.png', await res.blob()); }catch(e){console.warn(e);} 
-      }
-
-      // LOW FIRE
-      if(decodedConfig['$low_fire_toggle_default_state']){
-        for(const f of ['fire_0.png','fire_1.png','soul_fire_0.png','soul_fire_1.png']){
-          try{ const res = await fetch(`fire_assets/${f}`); if(res.ok) zip.file(`textures/blocks/${f}`, await res.blob()); }catch(e){console.warn(`Failed fire file: ${f}`, e);} }
-      }
-
-      // BETTER GRASS
-      if(decodedConfig['$better_grass_toggle_default_state']){
-        try{ const res = await fetch('grass_assets/terrain_texture.json'); if(res.ok) zip.file('textures/terrain_texture.json', await res.blob()); }catch(e){console.warn('terrain_texture.json failed', e);} 
-        try{ const res2 = await fetch('grass_assets/blocks.json'); if(res2.ok) zip.file('blocks.json', await res2.blob()); }catch(e){console.warn('blocks.json failed', e);} 
-      }
-
-      // PACK ICON
-      try{ const res = await fetch('pack_icon.png'); if(res.ok) zip.file('pack_icon.png', await res.blob()); }catch(e){console.warn('pack_icon.png failed', e);} 
-
-      // MANIFEST
-      const now = new Date();
-      zip.file('manifest.json', JSON.stringify({
-        format_version:1, header:{ description:`Azelux Client Custom Config!\nGenerated: ${now.toLocaleString()}`, name:'Azelux Client Config', uuid:uuidv4(), version:[7,1,0] }, modules:[{description:'V1.0.0', type:'resources', uuid:uuidv4(), version:[7,1,0]}] },null,2));
-
-      setStatus('Generating .mcpack...');
-      const blob = await zip.generateAsync({type:'blob'});
-      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'azelux_client_config.mcpack'; a.click(); URL.revokeObjectURL(a.href);
-      setStatus('Done — Pack downloaded');
-    });
-
-    // cursor glow follow
-    let lastX=0,lastY=0;
-    window.addEventListener('mousemove', (e)=>{
-      cursorGlow.style.left = e.clientX + 'px';
-      cursorGlow.style.top  = e.clientY + 'px';
-    });
-
-    // tiny accessibility: allow Enter on generate when file selected
-    document.addEventListener('keydown', (e)=>{ if(e.key === 'Enter' && !generateBtn.disabled) generateBtn.click(); });
-
-  </script>
+<script src="script.js"></script>
+<footer class="site-footer">
+    &copy; Azelux Client 2026
+</footer>
 </body>
 </html>
-
-

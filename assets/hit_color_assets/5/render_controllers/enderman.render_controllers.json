@@ -1,0 +1,36 @@
+{
+    "format_version": "1.8.0",
+    "render_controllers": {
+        "controller.render.enderman": {
+            "arrays": {
+                "materials": {
+                    "Array.materials": [
+                        "Material.default",
+                        "Material.invisible"
+                    ]
+                }
+            },
+            "geometry": "Geometry.default",
+            "materials": [
+                {
+                    "*": "Array.materials[query.is_invisible]"
+                }
+            ],
+            "textures": [
+                "Texture.default"
+            ],
+            "is_hurt_color": {
+                "r": "0.0",
+                "g": "0.8",
+                "b": "0.9",
+                "a": "0.5"
+            },
+            "on_fire_color": {
+                "r": "0.0",
+                "g": "0.8",
+                "b": "0.9",
+                "a": "0.5"
+            }
+        }
+    }
+}
