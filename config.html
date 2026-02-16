@@ -58,6 +58,19 @@
         <button id="downloadZip" class="btn config" style="margin-top:16px; display:none;">
             DOWNLOAD CONFIG
         </button>
+		
+		<div id="debugBox" style="
+			margin-top:16px;
+			padding:12px;
+			background:#111;
+			color:#0f0;
+			font-family:monospace;
+			font-size:12px;
+			border-radius:8px;
+			max-height:200px;
+			overflow:auto;
+			display:none;
+		"></div>
 
         <!-- YouTube embed -->
         <div class="video-container" style="margin-top:32px; max-width:800px; margin-left:auto; margin-right:auto;">
@@ -120,6 +133,7 @@
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -177,42 +191,76 @@
 
 		return canvas;
 	}
+	
+	const debugBox = document.getElementById("debugBox");
+
+		function debugLog(msg) {
+			debugBox.style.display = "block";
+			debugBox.innerHTML += `[${new Date().toLocaleTimeString()}] ${msg}<br>`;
+			console.log(msg);
+		}
+
+		function debugError(msg, err) {
+			debugLog("❌ " + msg);
+			if (err) console.error(err);
+		}
+	
+	async function decodeQRCodeFromCanvas(canvas) {
+		const ctx = canvas.getContext("2d");
+		const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+		const qr = jsQR(imageData.data, canvas.width, canvas.height);
+		return qr ? qr.data : null;
+	}
 
     // Run OCR & decode immediately on file upload
-    imageInput.addEventListener("change", async () => {
-        if (!imageInput.files[0]) return;
+imageInput.addEventListener("change", async () => {
+    if (!imageInput.files[0]) return;
 
-        downloadBtn.style.display = "none";
+    debugBox.innerHTML = "";
+    debugLog("Image selected");
+    downloadBtn.style.display = "none";
 
-        try {
-			const processedCanvas = await preprocessImage(imageInput.files[0]);
+    try {
+        debugLog("Preprocessing image...");
+        const processedCanvas = await preprocessImage(imageInput.files[0]);
+        debugLog("Preprocess OK");
 
-			const result = await Tesseract.recognize(processedCanvas, "eng", {
-				tessedit_char_whitelist: "acxACX@0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
-			});
+        debugLog("Running OCR...");
+        const result = await Tesseract.recognize(processedCanvas, "eng", {
+            tessedit_char_whitelist: "acxACX@0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+        });
+        debugLog("OCR finished");
 
-            const rawText = result.data.text;
-            const normalized = normalizeOCR(rawText);
-            const lines = extractLines(normalized);
-            const rawLines = extractLines(rawText);
-            lines.acx3 = normalizeACX3(rawLines.acx3);
+        const rawText = result.data.text;
+        debugLog("OCR Raw Text: " + rawText.slice(0, 200));
 
-            decoded = {
-                acx1: decodeACX1(lines.acx1),
-                acx2: decodeACX2(lines.acx2),
-                acx3: decodeACX3(lines.acx3),
-            };
+        const normalized = normalizeOCR(rawText);
+        debugLog("Normalized OCR: " + normalized.slice(0, 200));
 
-            decoded.acx3.username = normalizeUsername(decoded.acx3.username);
+        const lines = extractLines(normalized);
+        debugLog("ACX lines extracted");
 
-            // Only show the download button — DO NOT CALL generateConfigZip here
-            downloadBtn.style.display = "inline-block";
+        debugLog("Decoding QR...");
+        const qrUsername = await decodeQRCodeFromCanvas(processedCanvas);
+        debugLog("QR Result: " + (qrUsername || "NONE"));
 
-        } catch (err) {
-            alert("Failed to process the screenshot. Make sure it's a valid Azelux config.");
-            decoded = null;
-        }
-    });
+        decoded = {
+            acx1: decodeACX1(lines.acx1),
+            acx2: decodeACX2(lines.acx2),
+            acx3: decodeACX3(lines.acx3, qrUsername),
+        };
+
+        debugLog("Decoded username: " + decoded.acx3.username);
+
+        downloadBtn.style.display = "inline-block";
+        debugLog("READY");
+
+    } catch (err) {
+        debugError("FAILED PIPELINE", err);
+        alert("Failed to process the screenshot. Check debug panel.");
+        decoded = null;
+    }
+});
 
 
         // =========================
@@ -228,20 +276,28 @@
         // =========================
         // LINE EXTRACTION
         // =========================
-        function extractLines(text) {
-            const i1 = text.indexOf("acx1@");
-            const i2 = text.indexOf("acx2@");
-            const i3 = text.indexOf("acx3@");
+function extractLines(text) {
+    debugLog("Extracting ACX markers...");
 
-            if (i1 === -1 || i2 === -1 || i3 === -1) throw new Error("Missing acx line prefix");
-            if (!(i1 < i2 && i2 < i3)) throw new Error("Invalid acx line order");
+    const i1 = text.indexOf("acx1@");
+    const i2 = text.indexOf("acx2@");
+    const i3 = text.indexOf("acx3@");
 
-            return {
-                acx1: text.slice(i1, i2),
-                acx2: text.slice(i2, i3),
-                acx3: text.slice(i3),
-            };
-        }
+    debugLog(`Indexes: acx1=${i1}, acx2=${i2}, acx3=${i3}`);
+
+    if (i1 === -1 || i2 === -1 || i3 === -1)
+        throw new Error("Missing acx markers");
+
+    if (!(i1 < i2 && i2 < i3))
+        throw new Error("ACX order invalid");
+
+    return {
+        acx1: text.slice(i1, i2),
+        acx2: text.slice(i2, i3),
+        acx3: text.slice(i3),
+    };
+}
+
 
         // =========================
         // HELPERS
@@ -337,47 +393,31 @@
             return o;
         }
 
-        // =========================
-        // ACX3 DECODER
-        // =========================
-function normalizeACX3(line) {
-    const prefix = "acx3@";
-    if (!line.startsWith(prefix)) return line;
-
-    const rest = line.slice(prefix.length);
-    const firstAt = rest.indexOf("@");
-    const secondAt = rest.indexOf("@", firstAt + 1);
-    if (firstAt === -1 || secondAt === -1) throw new Error("ACX3 does not contain two @ symbols");
-    
-    const beforeUsername = rest.slice(0, firstAt);
-    const username = rest.slice(firstAt + 1, secondAt); // do NOT normalize this!
-    const normalizedBefore = beforeUsername.replace(/\s+/g, "").replace(/O/g, "0").replace(/[Il]/g, "1").toLowerCase();
-    return prefix + normalizedBefore + "@" + username + "@";
-}
-
 
 function normalizeUsername(username) {
     return username.trim(); // only trim whitespace, no replacements
 }
 
-        function decodeACX3(line) {
-            const body = line.replace("acx3@", "");
-            const firstAt = body.indexOf("@");
-            const lastAt = body.lastIndexOf("@");
-            if (firstAt === -1 || lastAt === -1 || firstAt === lastAt) throw new Error("Invalid ACX3 username format");
-            let d = body.slice(0, firstAt);
-            const username = body.slice(firstAt + 1, lastAt);
-            const o = {};
-            [o.cape, d] = take(d, 3);
-            [o.wings, d] = take(d, 2);
-            [o.axolotl, d] = take(d, 1);
-            [o.glasses, d] = take(d, 1);
-            [o.halo, d] = take(d, 2);
-            [o.shield, d] = take(d, 2);
-            [o.players, d] = take(d, 1);
-            o.username = username;
-            return o;
-        }
+// ACX3 now contains: acx3@<numbers>@<QR IMAGE, NOT TEXT>
+function decodeACX3(line, qrUsername) {
+    let d = line.replace("acx3@", "");
+    const o = {};
+
+    // Parse cosmetics normally
+    [o.cape, d] = take(d, 3);
+    [o.wings, d] = take(d, 2);
+    [o.axolotl, d] = take(d, 1);
+    [o.glasses, d] = take(d, 1);
+    [o.halo, d] = take(d, 2);
+    [o.shield, d] = take(d, 2);
+    [o.players, d] = take(d, 1);
+
+    // Username now comes from QR
+    o.username = qrUsername || "Unknown";
+
+    return o;
+}
+
 
         function buildGlobalVariables(decoded) {
           const a1 = decoded.acx1;
