@@ -12,6 +12,13 @@ body {
     overflow-x: hidden;
 }
 
+@font-face {
+    font-family: "Minecraft";
+    src: url("fonts/minecraft.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}
+
 /* ===== HEADER ===== */
 .topbar {
     position: fixed;
