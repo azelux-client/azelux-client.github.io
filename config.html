@@ -896,6 +896,7 @@ function decodeACX3(line, qrUsername) {
         }
 
         async function generateNametagImage(username) {
+			await document.fonts.load("115px Minecraft");
             const canvas = document.createElement("canvas");
             canvas.width = 2000;
             canvas.height = 133;
@@ -973,6 +974,7 @@ function decodeACX3(line, qrUsername) {
 
           // Generate third-person nametag for the player
             try {
+				await document.fonts.load("115px Minecraft");
                 const nametagBlob = await generateNametagImage(decoded.acx3.username);
                 zip.file("azelux/assets/cosmetics/thirdpersonnametag1.png", nametagBlob);
             }   catch (err) {
