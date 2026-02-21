@@ -169,6 +169,8 @@
     const debugBox = document.getElementById("debugBox");
 
     let decoded = null;
+    let generatedBlobUrl = null;
+    let generatedFilename = "";
 
     function updateProgress(percent, text, isError = false) {
         progressContainer.style.display = "block";
@@ -230,6 +232,13 @@
         debugBox.innerHTML = "";
         debugLog("Image selected");
         downloadBtn.style.display = "none";
+        
+        // Reset previous generated file if exists
+        if (generatedBlobUrl) {
+            URL.revokeObjectURL(generatedBlobUrl);
+            generatedBlobUrl = null;
+        }
+
         updateProgress(5, "Preprocessing image...");
 
         try {
@@ -275,9 +284,10 @@
 
             debugLog("Decoded username: " + decoded.acx3.username);
 
-            updateProgress(100, "Ready! You can now download your config.");
-            downloadBtn.style.display = "inline-block";
-            debugLog("READY");
+            // Generate ZIP in the background BEFORE showing the download button
+            updateProgress(96, "Fetching assets and preparing file... (this may take a moment)");
+            debugLog("Starting background zip generation...");
+            await prepareConfigZip(decoded.acx3.username);
 
         } catch (err) {
             debugError("FAILED PIPELINE", err);
@@ -981,10 +991,7 @@
 
 
     // ---------- ZIP GENERATION ----------
-    async function generateConfigZip(username) {
-        if (this.generating) return; // Prevent multiple clicks
-        this.generating = true;
-
+    async function prepareConfigZip(username) {
         try {
         if (!decoded) throw new Error("No decoded data");
 
@@ -1160,28 +1167,36 @@
         zip.file("pack_icon.png", iconBlob);
 
         const zipBlob = await zip.generateAsync({ type: "blob" });
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(zipBlob);
-        a.download = `azelux_config_${username}.mcpack`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(a.href);
-        } finally {
-            this.generating = false;
+        
+        // Save the generated file to a blob URL globally instead of downloading it directly
+        generatedBlobUrl = URL.createObjectURL(zipBlob);
+        generatedFilename = `azelux_config_${username}.mcpack`;
+
+        // Now that it's ready, show the download button
+        updateProgress(100, "Ready! Click below to download your config instantly.");
+        downloadBtn.style.display = "inline-block";
+        downloadBtn.innerText = "DOWNLOAD CONFIG (INSTANT)";
+        debugLog("READY");
+
+        } catch (err) {
+            throw err; // Pass error up to the try/catch in the event listener
         }
     }
 
     // ---------- DOWNLOAD BUTTON ----------
     document.getElementById("downloadZip").addEventListener("click", () => {
-        if (!decoded?.acx3?.username) {
-        alert("Username not detected. Process a screenshot first.");
-        return;
+        if (!generatedBlobUrl) {
+            alert("File is not ready yet. Please wait for the progress bar to finish.");
+            return;
         }
-        generateConfigZip(decoded.acx3.username).catch(err => {
-        console.error(err);
-        alert("Failed to generate zip");
-        });
+        
+        // Trigger the instant download from the pre-generated Blob URL
+        const a = document.createElement("a");
+        a.href = generatedBlobUrl;
+        a.download = generatedFilename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
     });
 
 </script>
